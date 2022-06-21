@@ -1,6 +1,6 @@
 const { chromium } = require("playwright");
-const {format} = require("date-fns");
-const config = require("../config");
+const { format } = require("date-fns");
+const config = require("./config");
 
 /**
  * Request Kayak.com about a flight to get best price
@@ -58,6 +58,10 @@ class KayakBot {
         
                 const prices = (await getMainInfos.locator(".js-price").allTextContents()).map((price) => parseInt(price));
                 const durations = await getMainInfos.locator(".js-duration").allTextContents();
+                
+                if(prices.length === 0 || durations.length === 0 ){
+                    throw new Error("no price detected");
+                }
 
                 if(prices[0] < this.bestFlights.price.price) {
                     this.bestFlights.price.price = prices[0];
