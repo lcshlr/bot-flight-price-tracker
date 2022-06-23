@@ -1,0 +1,25 @@
+{
+    "browser": {
+        "options": {
+            "ignoreHTTPSErrors": true,
+            "devtools": false,
+            "headless": true,
+            "args": [],
+            "ignoreDefaultArgs": [
+                "--disable-extensions"
+            ]
+        },
+        "userAgents": {
+            "firefox": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0",
+            "chrome": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.53 Safari/537.36"
+        }
+    },
+    "bot": {
+        "startDate": "2022-11-15",
+        "endDate": "2022-12-30",
+        "screenFolderPath": "snapshots",
+        "resultsFilePath": "result.json",
+        "logFilePath": "logs.txt",
+        "enableMail": true
+    }
+}
