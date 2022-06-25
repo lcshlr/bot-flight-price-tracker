@@ -116,6 +116,7 @@ class KayakBot {
     }
 
     async run() {
+        const startScan = Date.now();
         try{
             this.browser = await firefox.launch(config.browser.options);
         } catch(err) {
@@ -145,6 +146,9 @@ class KayakBot {
         if(results.includes(true)) {
             await this.handleResults();
         }
+        const diffTime = Math.abs(Date.now() - startScan);
+        const scanDiffMinutes = Math.ceil(diffTime / (1000 * 60));
+        log(`Scan time for best flights from ${botConfig.startDate}(+-3d) to ${botConfig.endDate}(+-3d): ${scanDiffMinutes}min`);
 
         await this.browser.close();
     }
