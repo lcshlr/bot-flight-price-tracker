@@ -11,7 +11,7 @@ const path = pathLib.dirname(require.main.filename) + pathSep;
 
 
 config.bot.logFilePath = path + config.bot.logFilePath;
-config.bot.resultsFilePath = path + config.bot.resultsFilePath;
+config.bot.resultsFolderPath = path + config.bot.resultsFolderPath;
 config.bot.screenFolderPath = path + config.bot.screenFolderPath + pathSep;
 
 const defaultValues = {
@@ -28,61 +28,83 @@ const defaultValues = {
 };
 
 /**
- * Request Kayak.com about a flight to get best price
+ * Request Kayak.com about multiple flight destinations to get best price
  */
 class KayakBot {
 
     flights;
 
     constructor() {
-        if(!fs.existsSync(config.bot.resultsFilePath)){
-            fs.writeFileSync(config.bot.resultsFilePath, JSON.stringify(defaultValues));
+        this.flights = {};
+        this.initializeFolders();
+    }
+
+    initializeFolders() {
+        if(!fs.existsSync(config.bot.resultsFolderPath)){
+            fs.mkdirSync(config.bot.resultsFolderPath);
         }
+
+        config.bot.flights.forEach((flight) => {
+            const filename = `${config.bot.resultsFolderPath}${pathSep}${flight.journey}.json`;
+            if(!fs.existsSync(filename)){
+                fs.writeFileSync(filename, JSON.stringify(defaultValues));
+            }
+            this.flights[flight.journey] = JSON.parse(fs.readFileSync(filename));
+        });
 
         if(!fs.existsSync(config.bot.screenFolderPath)){
             fs.mkdirSync(config.bot.screenFolderPath);
         }
-
-        this.flights = JSON.parse(fs.readFileSync(config.bot.resultsFilePath));
     }
-
+    
     getDateFromString(date) {
-        const [year, month, day] = date.split("-");
+        const [day, month, year] = date.split("-");
         return new Date(year, month -1, day);
     }
 
-    getPrettyResults() {
-        return "New best price found :\n\n" +
-        `Best price :\n\tPrice : ${this.flights.bestPrice.price}€\n\tDuration : ${this.flights.bestPrice.duration}\n\tTravel date : ${this.flights.bestPrice.date}\n` +
-        `Best choice :\n\tPrix : ${this.flights.bestChoice.price}€\n\tDuration : ${this.flights.bestChoice.duration}\n\tTravel date : ${this.flights.bestChoice.date}\n\n\n` +
-        `Date range of research : from ${config.bot.startDate} to ${config.bot.endDate}`;
+    getPrettyResults(flight) {
+        const journey = flight.journey;
+        const getFlight = this.flights[journey];
+        return `New best price found for ${journey} :\n\n` +
+        `Best price :\n\tPrice : ${getFlight.bestPrice.price}€\n\tDuration : ${getFlight.bestPrice.duration}\n\tTravel date : ${getFlight.bestPrice.date}\n` +
+        `Best choice :\n\tPrix : ${getFlight.bestChoice.price}€\n\tDuration : ${getFlight.bestChoice.duration}\n\tTravel date : ${getFlight.bestChoice.date}\n\n\n` +
+        `Date range of research : from ${flight.start} to ${flight.end}`;
     }
 
-    async handleResults() {
+    async handleFlightResult(flight) {
         try{
-            const results = this.getPrettyResults();
-            fs.writeFileSync(config.bot.resultsFilePath, JSON.stringify(this.flights));
+            const journey = flight.journey;
+            const results = this.getPrettyResults(flight);
+            fs.writeFileSync(`${config.bot.resultsFolderPath}${pathSep}${journey}.json`, JSON.stringify(this.flights[journey]));
             log(results);
             if(config.bot.enableMail){
-                await mailer.sendMail("New price detected", results);
+                await mailer.sendMail(`${journey} - New price detected`, results, `${journey}`);
             }
         } catch(err) {
             log(err?.message ?? err.toString(), "ERROR");
         }
     }
 
-    async handleKayakData(date) {
+    async handleKayakData(flight, date) {
+        const [year, month, day] = date.split("-");
+        const datePrettyFormat = `${day}-${month}-${year}`;
         let page;
         let hasChanged = false;
+        let journey = flight.journey;
 
         try {
             const context = await this.browser.newContext();
             page = await context.newPage({userAgent: config.browser.userAgents.firefox, });
         
-            await page.goto("https://www.kayak.fr/flights/PAR-SGN/"+ date + "-flexible-3days?sort=bestflight_a&fs=legdur=-900;stops=-2", {timeout: 5 * 60 * 1000});
+            await page.goto("https://www.kayak.fr/flights/"+ journey + "/"+ date + "-flexible-3days?sort=bestflight_a&fs=legdur=-900;stops=-2", {timeout: 5 * 60 * 1000});
 
             await page.waitForTimeout(10000);
         
+            try {
+                // decline cookies
+                await page.click("[class*=decline] button");
+            } catch {/**/}
+
             const getMainInfos = page.locator("[class*=tabGrid]");
         
             const prices = (await getMainInfos.locator(".js-price").allTextContents()).map(price => parseInt(price));
@@ -92,26 +114,33 @@ class KayakBot {
                 throw new Error("No price detected (may be detected as a robot)");
             }
 
-            if(prices[0] < this.flights.bestPrice.price) {
-                this.flights.bestPrice.price = prices[0];
-                this.flights.bestPrice.duration = durations[0];
-                this.flights.bestPrice.date = date;
+            if(prices[0] < this.flights[journey].bestPrice.price) {
+                this.flights[journey].bestPrice.price = prices[0];
+                this.flights[journey].bestPrice.duration = durations[0];
+                this.flights[journey].bestPrice.date = datePrettyFormat;
                 hasChanged = true;
             }
              
-            if(prices[1] < this.flights.bestChoice.price) {
-                this.flights.bestChoice.price = prices[1];
-                this.flights.bestChoice.duration = durations[1];
-                this.flights.bestChoice.date = date;
+            if(prices[1] < this.flights[journey].bestChoice.price) {
+                this.flights[journey].bestChoice.price = prices[1];
+                this.flights[journey].bestChoice.duration = durations[1];
+                this.flights[journey].bestChoice.date = datePrettyFormat;
                 hasChanged = true;
             }
-            return hasChanged;
+
+            if(hasChanged){
+                await page.screenshot({ path: `${config.bot.screenFolderPath}${journey}.png` });
+            }
+
+            await page.close();
+            return { hasChanged, flight };
         }
         catch(err) {
-            await handleErrors(page, err, `error-${date}`);
-        }
-        finally {
+            await handleErrors(page, err, `error-${datePrettyFormat}`);
             await page.close();
+            // exit process to not send too much error mails
+            // eslint-disable-next-line no-undef
+            process.exit(1);
         }
     }
 
@@ -122,33 +151,32 @@ class KayakBot {
         } catch(err) {
             log(err, "ERROR");
         }
-        const botConfig = config.bot;
-
-        const date = this.getDateFromString(botConfig.startDate);
-        const targetDate = this.getDateFromString(botConfig.endDate);
-
-        log(`Looking for best flights from ${botConfig.startDate}(+-3d) to ${botConfig.endDate}(+-3d)`);
-
         const promises = [];
 
-        while(date  < targetDate) {
+        // for each destinations
+        config.bot.flights.forEach((flight) => {
+            log(`Looking for best flights (${flight.journey}) from ${flight.start}(+-3d) to ${flight.end}(+-3d)`);
+            const date = this.getDateFromString(flight.start);
+            const targetDate = this.getDateFromString(flight.end);
 
-            const nextDate = format(date, "yyyy-MM-dd");
-            date.setDate(date.getDate() + 5);
+            // while the destination date range is not over
+            while(date  < targetDate) {
+                const nextDate = format(date, "yyyy-MM-dd");
+                date.setDate(date.getDate() + 5);
             
-            promises.push(this.handleKayakData(nextDate));
-        }
+                promises.push(this.handleKayakData(flight, nextDate));
+            }
+        });
 
-        // Run all requests asynchronously and store hasChanged value
-        const results = (await Promise.allSettled(promises)).map((response) => response.value);
-        
-        // If one of request get a best price, email sent
-        if(results.includes(true)) {
-            await this.handleResults();
-        }
+        // Run all requests asynchronously
+        (await Promise.allSettled(promises))
+            .map(response => response.value)
+            .filter(response => response.hasChanged)
+            .forEach(async(response) => await this.handleFlightResult(response.flight));
+
         const diffTime = Math.abs(Date.now() - startScan);
         const scanDiffMinutes = Math.ceil(diffTime / (1000 * 60));
-        log(`Scan time for best flights from ${botConfig.startDate}(+-3d) to ${botConfig.endDate}(+-3d): ${scanDiffMinutes}min`);
+        log(`Scan time for best flights : ${scanDiffMinutes}min`);
 
         await this.browser.close();
     }

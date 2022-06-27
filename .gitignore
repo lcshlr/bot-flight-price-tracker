@@ -3,7 +3,7 @@ node_modules/
 /playwright-report/
 /playwright/.cache/
 snapshots
-result.json
 logs.txt
 src/config/mail.json
 .vscode/settings.json
+results

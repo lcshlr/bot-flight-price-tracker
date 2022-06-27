@@ -11,6 +11,7 @@ const log = function log(message,type="INFO"){
 };
 
 const handleErrors = async function(page, err, screenshotName){
+
     log(err?.message ?? err.toString(),"ERROR");
     try{
         await page.screenshot({ path: `${config.bot.screenFolderPath}${screenshotName}.png` });

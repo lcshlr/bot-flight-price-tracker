@@ -15,10 +15,20 @@
         }
     },
     "bot": {
-        "startDate": "2022-11-15",
-        "endDate": "2022-12-30",
+        "flights": [
+            {
+                "journey": "PAR-BKK",
+                "start": "20-11-2022",
+                "end": "10-12-2022"
+            },
+            {
+            "journey": "SGN-PER",
+            "start": "25-02-2023",
+            "end": "05-03-2023"
+            }
+        ],
         "screenFolderPath": "snapshots",
-        "resultsFilePath": "result.json",
+        "resultsFolderPath": "results",
         "logFilePath": "logs.txt",
         "enableMail": true
     }

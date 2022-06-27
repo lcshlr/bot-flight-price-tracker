@@ -26,9 +26,9 @@ class Mailer {
         mailOptions.subject = `${this.mailOptions.subject} ${subject}`;
         mailOptions.text = bodyMessage;
 
-        if(attachments && fs.existsSync(`${config.bot.screenFolderPath}${attachments}`)){
+        if(attachments && fs.existsSync(`${config.bot.screenFolderPath}${attachments}.png`)){
             mailOptions.attachments = [{
-                filename: attachments,
+                filename: attachments + ".png",
                 path: `${config.bot.screenFolderPath}${attachments}.png`,
                 contentType: "image/png"
             }];
