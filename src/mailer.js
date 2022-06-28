@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 const fs = require("fs");
-const mailConfig = require("./config/mail.json");
-const config = require("./config/bot.json");
+const mailConfig = require("../config/mail.json");
+const config = require("../config/bot.json");
 
 class Mailer {
     constructor(){

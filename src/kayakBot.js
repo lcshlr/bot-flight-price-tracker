@@ -2,7 +2,7 @@ const { firefox } = require("playwright");
 const { format } = require("date-fns");
 const fs = require("fs");
 const pathLib = require("path");
-const config = require("./config/bot.json");
+const config = require("../config/bot.json");
 const mailer = require("./mailer");
 const { handleErrors, log } = require("./utils");
 

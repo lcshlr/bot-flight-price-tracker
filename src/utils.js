@@ -1,6 +1,6 @@
 const fs = require("fs");
 const { format } = require("date-fns");
-const config = require("./config/bot.json");
+const config = require("../config/bot.json");
 const mailer = require("./mailer");
 
 const log = function log(message,type="INFO"){
