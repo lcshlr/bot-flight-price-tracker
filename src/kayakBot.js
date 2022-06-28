@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const { firefox } = require("playwright");
 const { format } = require("date-fns");
 const fs = require("fs");
@@ -65,10 +66,23 @@ class KayakBot {
     getPrettyResults(flight) {
         const journey = flight.journey;
         const getFlight = this.flights[journey];
-        return `New best price found for ${journey} :\n\n` +
+        let msg = `New best price found for ${journey} :\n\n` +
         `Best price :\n\tPrice : ${getFlight.bestPrice.price}€\n\tDuration : ${getFlight.bestPrice.duration}\n\tTravel date : ${getFlight.bestPrice.date}\n` +
         `Best choice :\n\tPrix : ${getFlight.bestChoice.price}€\n\tDuration : ${getFlight.bestChoice.duration}\n\tTravel date : ${getFlight.bestChoice.date}\n\n\n` +
         `Date range of research : from ${flight.start} to ${flight.end}`;
+
+        // print vpn country and public ip used if given in arguments of script
+        const [ vpn, ip ] = process.argv.slice(2);
+
+        if(vpn) {
+            msg += `\nVPN Country: ${vpn}`;
+        }
+        
+        if(ip) {
+            msg += `\nIP Address: ${ip}`;
+        }
+
+        return msg;
     }
 
     async handleFlightResult(flight) {
@@ -139,7 +153,6 @@ class KayakBot {
             await handleErrors(page, err, `error-${datePrettyFormat}`);
             await page.close();
             // exit process to not send too much error mails
-            // eslint-disable-next-line no-undef
             process.exit(1);
         }
     }
