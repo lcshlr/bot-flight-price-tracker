@@ -5,7 +5,10 @@ const mailer = require("./mailer");
 
 const log = function log(message,type="INFO"){
     const dateNow = format(Date.now(), "yyyy-MM-dd-HH-mm-ss");
-    message = `${dateNow} [${type}] ${message}\n`;
+    let [ vpn, ip ] = process.argv.slice(2);
+    vpn = vpn ? `(${vpn})`: "";
+
+    message = `${dateNow} ${vpn} [${type}] ${message}\n`;
     console.log(message);
     fs.appendFileSync(config.bot.logFilePath, message);
 };
