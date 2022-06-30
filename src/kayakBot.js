@@ -34,8 +34,10 @@ const defaultValues = {
 class KayakBot {
 
     flights;
+    errorSent;
 
     constructor() {
+        this.errorSent = false;
         this.flights = {};
         this.initializeFolders();
     }
@@ -152,17 +154,20 @@ class KayakBot {
                 await page.screenshot({ path: `${config.bot.screenFolderPath}${journey}.png` });
             }
             else{
-                log(`(${journey}) from ${flight.start} to ${flight.end}, price : bestPrice => ${prices[0]} - bestChoice => ${prices[1]}`);
+                log(`(${journey}) from ${flight.start} to ${flight.end}, price : bestPrice => ${prices[0]}€ - bestChoice => ${prices[1]}€`);
             }
 
             await page.close();
             return { hasChanged, flight };
         }
         catch(err) {
-            await handleErrors(page, err, `error-${datePrettyFormat}`);
+            // prevent send too much error mails
+            if(!this.errorSent)
+            {
+                this.errorSent = true;
+                await handleErrors(page, err, `error-${datePrettyFormat}`);
+            }
             await page.close();
-            // exit process to not send too much error mails
-            process.exit(1);
         }
     }
 

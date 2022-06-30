@@ -6,7 +6,7 @@ const mailer = require("./mailer");
 
 const log = function log(message,type="INFO", showVpnInfos = false){
     const dateNow = format(Date.now(), "yyyy-MM-dd-HH-mm-ss");
-    let vpnInfos;
+    let vpnInfos = "";
     if(showVpnInfos){
         vpnInfos = process.argv.slice(2);
         vpnInfos = vpnInfos.length > 0 ? `[${vpnInfos}]` : "";
