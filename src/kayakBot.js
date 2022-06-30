@@ -151,6 +151,9 @@ class KayakBot {
             if(hasChanged){
                 await page.screenshot({ path: `${config.bot.screenFolderPath}${journey}.png` });
             }
+            else{
+                log(`(${journey}) from ${flight.start} to ${flight.end}, price : bestPrice => ${prices[0]} - bestChoice => ${prices[1]}`);
+            }
 
             await page.close();
             return { hasChanged, flight };
@@ -171,10 +174,10 @@ class KayakBot {
             log(err, "ERROR");
         }
         const promises = [];
-
+        log("\n=======================================");
         // for each destinations
         config.bot.flights.forEach((flight) => {
-            log(`Looking for best flights (${flight.journey}) from ${flight.start}(+-3d) to ${flight.end}(+-3d)`);
+            log(`Looking for best flights (${flight.journey}) from ${flight.start}(+-3d) to ${flight.end}(+-3d)`, "INFO", true);
             const date = this.getDateFromString(flight.start);
             const targetDate = this.getDateFromString(flight.end);
 

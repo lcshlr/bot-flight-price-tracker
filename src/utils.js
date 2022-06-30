@@ -4,10 +4,13 @@ const { format } = require("date-fns");
 const config = require("../config/bot.json");
 const mailer = require("./mailer");
 
-const log = function log(message,type="INFO"){
+const log = function log(message,type="INFO", showVpnInfos = false){
     const dateNow = format(Date.now(), "yyyy-MM-dd-HH-mm-ss");
-    let vpnInfos = process.argv.slice(2);
-    vpnInfos = vpnInfos.length > 0 ? `[${vpnInfos}]` : "";
+    let vpnInfos;
+    if(showVpnInfos){
+        vpnInfos = process.argv.slice(2);
+        vpnInfos = vpnInfos.length > 0 ? `[${vpnInfos}]` : "";
+    }
     message = `${dateNow} [${type}] ${message} ${vpnInfos}\n`;
     console.log(message);
     fs.appendFileSync(config.bot.logFilePath, message);
