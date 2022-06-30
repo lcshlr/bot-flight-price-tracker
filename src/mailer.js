@@ -21,7 +21,7 @@ class Mailer {
         };
     }
 
-    async sendMail(subject, bodyMessage, attachments) {
+    async sendMail({subject, bodyMessage, attachments, recipients}) {
         const mailOptions = {...this.mailOptions};  
         mailOptions.subject = `${this.mailOptions.subject} ${subject}`;
         mailOptions.text = bodyMessage;
@@ -34,7 +34,7 @@ class Mailer {
             }];
         }
       
-        mailOptions.to = mailConfig.recipients;
+        mailOptions.to = (recipients?.length > 0) ? recipients : mailConfig.recipients;
         await this.transporter.sendMail(mailOptions);
     } 
 }

@@ -4,6 +4,6 @@ node_modules/
 /playwright/.cache/
 snapshots
 logs.txt
-/config/mail.json
+/config
 .vscode/settings.json
 results

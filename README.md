@@ -28,6 +28,7 @@ _bot.json_ is composed of **browser** and **bot** sections.
   - **journey** : from airport/to airport (example: PAR-BKK)
   - **start**: journey scan start date (should be seperated by "-" and format should be dd-MM-yyyy, example: "01-06-2022")
   - **end**: journey scan end date (should be seperated by "-" and format should be dd-MM-yyyy, example: "01-06-2022")
+  - **recipients**: (optional) if enableMail is true, you can override mail recipients list described in mail config section below
 - **screenFolderPath**: folder path where screenshots saved (created if not existed)
 - **resultsFolderPath**: folder path where best flights files saved (created if not existed)
 - **logFilePath**: file path where application logs saved (created if not existed)

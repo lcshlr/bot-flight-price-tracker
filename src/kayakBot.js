@@ -92,7 +92,13 @@ class KayakBot {
             fs.writeFileSync(`${config.bot.resultsFolderPath}${pathSep}${journey}.json`, JSON.stringify(this.flights[journey]));
             log(results);
             if(config.bot.enableMail){
-                await mailer.sendMail(`${journey} - New price detected`, results, `${journey}`);
+                const mailOptions = {
+                    subject: `${journey} - New price detected`,
+                    bodyMessage: results,
+                    attachments: `${journey}`,
+                    recipients: flight.recipients
+                };
+                await mailer.sendMail(mailOptions);
             }
         } catch(err) {
             log(err?.message ?? err.toString(), "ERROR");
