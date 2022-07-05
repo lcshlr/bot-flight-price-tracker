@@ -24,6 +24,7 @@ _bot.json_ is composed of **browser** and **bot** sections.
 
 **bot** :
 
+- **kayakOptions** : any kayak url option (example: "sort=bestflight_a" to sort by best flight)
 - **flights** : array list of each different journey, structure :
   - **journey** : from airport/to airport (example: PAR-BKK)
   - **start**: journey scan start date (should be seperated by "-" and format should be dd-MM-yyyy, example: "01-06-2022")

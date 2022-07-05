@@ -118,7 +118,7 @@ class KayakBot {
             const context = await this.browser.newContext();
             page = await context.newPage({userAgent: config.browser.userAgents.firefox, });
         
-            await page.goto("https://www.kayak.fr/flights/"+ journey + "/"+ date + "-flexible-3days?sort=bestflight_a&fs=legdur=-900;stops=-2", {timeout: 5 * 60 * 1000});
+            await page.goto(`https://www.kayak.fr/flights/${journey}/${date}-flexible-3days?${config.bot.kayakOptions}`, {timeout: 5 * 60 * 1000});
 
             await page.waitForTimeout(10000);
         
